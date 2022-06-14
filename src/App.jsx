@@ -7,6 +7,7 @@ import {Header} from "./components/Header/Header"
 import {Instructions} from "./components/Instructions/Instructions" 
 // <Instructions />
 import {Chip} from "./components/Chip/Chip"
+import {NutritionalLabel} from "./components/NutritionalLabel/NutritionalLabel"
 
 
 // don't move this!
@@ -30,6 +31,7 @@ export function App() {
   // Store state for a category the user can select with the React.useState hook.
   const [selectedCategory,setSelectedCategory] = React.useState(null)
   const [selectedRestaurant,setSelectedRestaurant] = React.useState(null)
+  const [selectedMenuItem,setSelectedMenuItem] = React.useState(null)
 
   // anonymous function passed to the Chip's onClick handler so that each Chip can be used 
   // to select a different category when clicked 
@@ -50,6 +52,51 @@ export function App() {
       setSelectedRestaurant(restaurant)
     }
   }
+
+  // anonymous function passed to the Chip's onClick handler so that each Chip can be used 
+  // to select a different menu item when clicked 
+  const handleMenuItemClick = (menuItem) => {
+    if(selectedMenuItem == menuItem){
+      setSelectedMenuItem(null)
+    } else{
+      setSelectedMenuItem(menuItem)
+    }
+  }
+
+  // 
+  function handleInstructions() {
+    if(instructionsStart){
+      return appInfo.instructions.start
+    } else if (onlyCategory){
+      return appInfo.instructions.onlyCategory
+    } else if(onlyRestaurant){
+      return appInfo.instructions.onlyRestaurant
+    } else if(noSelectedItem){
+      return appInfo.instructions.noSelectedItem
+    } else if(allSelected){
+      return appInfo.instructions.allSelected
+    }
+  }
+
+  // start: `Start by clicking on a food category on the left and a fast food joint from the list above. 
+  // Afterwards, you'll be able to choose from a list of menu items and see their nutritional content.`,
+  const instructionsStart = (selectedCategory == null ) && (selectedRestaurant == null)
+  // `Now select a fast food restaurant from the list above!`
+  const onlyCategory = (selectedCategory != null ) && (selectedRestaurant == null)
+  // `Now select a category from the list on the left!`
+  const onlyRestaurant = (selectedCategory == null ) && (selectedRestaurant != null)
+  // `Almost there! Choose a menu item and you'll have the fast food facts right at your fingertips!`
+  const noSelectedItem = (selectedCategory != null ) && (selectedRestaurant != null) && (selectedMenuItem == null)
+  // `Great choice! Amazing what a little knowledge can do!`
+  const allSelected = (selectedCategory != null ) && (selectedRestaurant != null) && (selectedMenuItem != null)
+
+  // filtering each item depending on if its .food_category attribute is equal to the selected 
+  // category and the .restaurant attribute is equal to the selected restaurant.
+  const currentMenuItems = data.filter((menuItem) => {
+    // boolean value check
+    return (menuItem.food_category === selectedCategory) && (menuItem.restaurant === selectedRestaurant)
+  })
+
 
   return (
     <main className="App">
@@ -102,7 +149,7 @@ export function App() {
 
         {/* INSTRUCTIONS GO HERE */}
         <Instructions
-        instructions={appInfo.instructions.start}
+        instructions= {handleInstructions()}
         />
 
         {/* MENU DISPLAY */}
@@ -110,11 +157,24 @@ export function App() {
           <div className="MenuItemButtons menu-items">
             <h2 className="title">Menu Items</h2>
             {/* YOUR CODE HERE */}
-            
+            {currentMenuItems.map((menuItem) => {
+            return(
+              <Chip
+              key={menuItem.item_name}
+              label={menuItem.item_name}
+              // true whenever that Chip's menu item is equal to the one in state
+              isActive={menuItem === selectedMenuItem}
+              onClick={() => handleMenuItemClick(menuItem)}
+              />
+              )
+          })}
           </div>
 
           {/* NUTRITION FACTS */}
-          <div className="NutritionFacts nutrition-facts">{/* YOUR CODE HERE */}</div>
+          <div className="NutritionFacts nutrition-facts">
+            {/* YOUR CODE HERE */}
+            {selectedMenuItem != null && <NutritionalLabel item = {selectedMenuItem}/>}
+          </div>
         </div>
 
         <div className="data-sources">
